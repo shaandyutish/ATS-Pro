@@ -2,12 +2,19 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
-const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 export const analyzeResume = async (resumeText: string, jobDescription: string): Promise<AnalysisResult> => {
   const prompt = `
     Act as a senior HR manager and ATS expert. Analyze the following resume against the provided job description.
     
+    IMPORTANT: The resume text provided below is extracted from a document and may contain "parsing noise" such as:
+    - Unexpected spaces between letters (e.g., "S o f t w a r e")
+    - Broken words due to line wraps (e.g., "identi- fication")
+    - Extra whitespace or missing line breaks.
+    
+    YOUR FIRST TASK: Mentally normalize and clean the text. Do NOT flag parsing artifacts as spelling or grammar errors. Only flag ACTUAL typos made by the candidate.
+
     Resume Text:
     ${resumeText}
     
@@ -15,10 +22,10 @@ export const analyzeResume = async (resumeText: string, jobDescription: string):
     ${jobDescription}
     
     Specifically audit for and IDENTIFY exact words/sections that are problematic:
-    1. Typography: Are standard fonts used?
-    2. Grammar/Spelling: Point out specific misspelled words or grammatical errors.
+    1. Typography: Are standard fonts used? (Focus on professional style).
+    2. Grammar/Spelling: Point out specific REAL misspelled words or grammatical errors.
     3. Repetition: Highlight specific overused words or phrases.
-    4. Layout: Identify complex elements like tables, images, or columns.
+    4. Layout: Identify complex elements like tables, images, or columns that reduce parsing fidelity.
     5. Headings: Check if standard headings are used correctly.
 
     For every "fail" or "warning" status, you MUST provide details in this exact expanded format: 

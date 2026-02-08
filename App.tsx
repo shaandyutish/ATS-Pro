@@ -75,6 +75,15 @@ const App: React.FC = () => {
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Helper to sanitize extracted text and remove common parsing artifacts
+  const sanitizeText = (text: string): string => {
+    return text
+      .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable characters
+      .replace(/[ \t]{2,}/g, ' ') // Collapse multiple spaces/tabs to one
+      .replace(/\n{3,}/g, '\n\n') // Normalize excessive line breaks
+      .trim();
+  };
+
   const parsePDF = async (data: ArrayBuffer): Promise<string> => {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     const loadingTask = pdfjsLib.getDocument({ data });
@@ -83,15 +92,16 @@ const App: React.FC = () => {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
+      // Improved joining logic to prevent merged words
       const pageText = textContent.items.map((item: any) => item.str).join(' ');
       fullText += pageText + '\n';
     }
-    return fullText;
+    return sanitizeText(fullText);
   };
 
   const parseDocx = async (data: ArrayBuffer): Promise<string> => {
     const res = await mammoth.extractRawText({ arrayBuffer: data });
-    return res.value;
+    return sanitizeText(res.value);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,10 +165,14 @@ const App: React.FC = () => {
             <div className="bg-indigo-600 p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-indigo-100">
               <i className="fas fa-bolt text-white"></i>
             </div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic">ATS <span className="text-indigo-600">Pro</span></h1>
+            <h1 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic">
+              ATS <span className="text-indigo-600">Pro</span> <span className="text-[15px] text-slate-700">V4.6</span>
+            </h1>
           </div>
-          <div className="hidden md:block px-4 py-1.5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-            Deep Audit 4.0 Enabled
+          <div className="hidden md:flex flex-col items-end">
+            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+              Powered by gemini 3 flash
+            </div>
           </div>
         </div>
       </header>
@@ -168,7 +182,7 @@ const App: React.FC = () => {
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-                <i className="fas fa-cloud-upload-alt text-indigo-500"></i> File Assets
+                <i className="fas fa-cloud-upload-alt text-indigo-500"></i> Resume Box
               </h3>
               <div 
                 onClick={() => fileInputRef.current?.click()}
@@ -183,7 +197,7 @@ const App: React.FC = () => {
 
             <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
               <h3 className="font-black text-xs uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-                <i className="fas fa-bullseye text-indigo-500"></i> Target Listing
+                <i className="fas fa-bullseye text-indigo-500"></i> Job Description
               </h3>
               <textarea
                 value={jobDescription}
@@ -198,7 +212,7 @@ const App: React.FC = () => {
               disabled={status === AppStatus.LOADING || !resumeText || !jobDescription}
               className="w-full py-5 rounded-[2rem] bg-indigo-600 text-white font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all disabled:bg-slate-300 disabled:shadow-none disabled:translate-y-0"
             >
-              {status === AppStatus.LOADING ? <i className="fas fa-cog fa-spin mr-2"></i> : 'Execute Audit'}
+              {status === AppStatus.LOADING ? <i className="fas fa-cog fa-spin mr-2"></i> : 'Run test'}
             </button>
             {error && <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-black uppercase text-center tracking-widest">{error}</div>}
           </div>
@@ -209,7 +223,7 @@ const App: React.FC = () => {
                 <div className="w-32 h-32 bg-indigo-50 rounded-full flex items-center justify-center mb-8 animate-pulse">
                   <i className="fas fa-radar text-5xl text-indigo-200"></i>
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">System Idle</h3>
+                <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">Waiting....</h3>
                 <p className="text-slate-400 text-sm max-w-sm mt-4 font-medium italic">Upload your documentation to begin a high-precision ATS compatibility scan.</p>
               </div>
             )}
