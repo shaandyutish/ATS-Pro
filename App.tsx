@@ -166,12 +166,12 @@ const App: React.FC = () => {
               <i className="fas fa-bolt text-white"></i>
             </div>
             <h1 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic">
-              ATS <span className="text-indigo-600">Pro</span> <span className="text-[15px] text-slate-700">V4.6</span>
+              ATS <span className="text-indigo-600">Pro</span> <span className="text-[15px] text-slate-700">V5.5</span>
             </h1>
           </div>
           <div className="hidden md:flex flex-col items-end">
             <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-              Powered by gemini 3 flash
+              Powered by gemini 2.5 flash
             </div>
           </div>
         </div>
